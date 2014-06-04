@@ -1,0 +1,21 @@
+library Graphs/DatatypesExtensions
+
+spec DSU[sort Elem] = 
+	generated type Dsu ::= emptyDsu 
+			       | makeSet(Elem; Dsu)
+			       | union(Elem; Elem; Dsu)?
+	ops find : Elem*Dsu ->? Elem
+	pred __isIn__ : Elem * Dsu
+	
+	forall d:Dsu; e,e1:Elem
+	. not e isIn emptyDsu
+	. e isIn makeSet(e1,d) <=> e=e1 \/ e isIn d
+	
+	. def union(e,e1,d) <=> e isIn d /\ e1 isIn d
+	. def find(e,d) <=> e isIn d
+	. def union(e,e1,d) => def find(e,d)
+
+	. find(e, makeSet(e,d)) = e
+	. def union(e,e1,d) => e isIn union(e,e1,d) /\ e1 isIn union(e,e1,d)
+	. def union(e,e1,d) => find(e,union(e,e1,d)) = find(e,d) /\ find(e1,union(e,e1,d)) = find(e,d)
+end

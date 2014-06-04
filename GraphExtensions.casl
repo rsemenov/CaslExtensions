@@ -1,0 +1,74 @@
+library rsemenov/GraphExtensions
+
+version 1.0
+
+from Basic/StructuredDatatypes get Set, Map, List
+from Basic/Numbers get Nat
+from Basic/Graphs get Graph, RichGraph, Paths
+from home/ubuntu/Desktop/Graphs/DatatypesExtensions get DSU
+
+spec GraphExtended[sort NodeId][sort EdgeId] = 
+	RichGraph[sort NodeId][sort EdgeId]
+and
+	List[sort EdgeId fit Elem |-> EdgeId]
+and 
+	List[sort NodeId fit Elem |-> NodeId]
+then
+	ops getEdges : Graph -> List[EdgeId];
+	    getNodes : Graph -> List[NodeId]
+
+	forall g:Graph; n1,n2:NodeId; e:EdgeId
+		. getEdges(emptyGraph) = []
+		. getEdges(addEdge(n1,n2,e,g)) = [e] ++ getEdges(g)
+		. getNodes(emptyGraph) = []
+		. getNodes(addNode(n1,g)) = [n1] ++ getNodes(g)
+		. getNodes(addEdge(n1,n2,e,g)) = ([n1] + n2) ++ getNodes(g) when (not(n1 isIn g) /\ not(n2 isIn g))
+						 else [n1] ++ getNodes(g) when (not(n1 isIn g) /\ n2 isIn g)
+						 else [n2] ++ getNodes(g) when (not(n2 isIn g) /\ n1 isIn g)
+						 else getNodes(g)
+end
+
+
+spec MinSpanningTree[sort NodeId][sort EdgeId; op weight:EdgeId->Nat] given Nat = 
+	GraphExtended[sort NodeId][sort EdgeId]
+and
+	Paths[sort NodeId][sort EdgeId]
+then
+	ops treeWeight : List[EdgeId] -> Nat
+		
+	forall l:List[EdgeId] .exists g:Graph
+		. def treeWeight(l) <=> (forall e:EdgeId . e eps l <=> e isIn g)
+		
+	forall l:List[EdgeId]; e:EdgeId
+		. treeWeight([]) = 0
+		. treeWeight(e::l) = weight(e)+treeWeight(l)	
+	
+	pred __minSpanningTreeOf__(t,g:Graph) <=>
+		t spanningTreeOf g /\ 
+		(forall p:Graph . p spanningTreeOf g => treeWeight(getEdges(t)) <= treeWeight(getEdges(p)))
+end
+
+spec MSTBuilder[sort Graph][sort NodeId][sort EdgeId; op weight:EdgeId->Nat] = 
+	MinSpanningTree[sort NodeId][sort EdgeId; op weight:EdgeId->Nat]
+then
+	ops buildMST : Graph -> Graph		
+
+	forall g:Graph
+	. buildMST(g) minSpanningTreeOf g
+end
+
+spec KruscalAlg[sort Graph][sort NodeId][sort EdgeId; op weight:EdgeId->Nat] = 
+	MSTBuilder[sort Graph][sort NodeId][sort EdgeId; op weight:EdgeId->Nat]
+then
+	ops kruscal : Graph -> Graph;
+	    buildMST : List[Elem] ->? Graph
+	
+	
+	
+end
+
+
+
+
+
+
